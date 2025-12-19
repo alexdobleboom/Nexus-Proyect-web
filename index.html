@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Multimedia | Bot Avanzado de Telegram</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== VARIABLES Y RESET ===== */
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #ff416c;
+            --dark: #0a0a1f;
+            --darker: #050510;
+            --light: #f8f9fa;
+            --gray: #8a8ab5;
+            --success: #00b09b;
+            --warning: #ff9966;
+            --info: #36d1dc;
+            
+            --gradient-primary: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --gradient-accent: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            --gradient-success: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            --gradient-dark: linear-gradient(135deg, #0a0a1f 0%, #1a1a3e 100%);
+            
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 30px 60px rgba(0, 0, 0, 0.4);
+            
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--dark);
+            color: var(--light);
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+            font-size: 14px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(106, 17, 203, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(37, 117, 252, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(255, 65, 108, 0.05) 0%, transparent 30%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .section {
+            padding: 70px 0;
+            position: relative;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--gradient-accent);
+            border-radius: 2px;
+        }
+
+        .section-title p {
+            font-size: 1rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== ROBOT COMPLETO ANIMADO ===== */
+        #floating-robot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 100px;
+            height: 150px;
+            z-index: 9999;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            pointer-events: auto;
+            animation: floatRobot 4s ease-in-out infinite;
+        }
+
+        @keyframes floatRobot {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg); 
+            }
+            50% { 
+                transform: translateY(-10px) rotate(1deg); 
+            }
+        }
+
+        .robot-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .robot-head {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-primary);
+            border-radius: 35px 35px 25px 25px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            z-index: 3;
+            transition: all 0.3s ease;
+        }
+
+        #floating-robot:hover .robot-head {
+            transform: rotate(5deg);
+        }
+
+        .robot-face {
+            width: 45px;
+            height: 45px;
+            position: relative;
+        }
+
+        .robot-eye {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            top: 12px;
+            animation: blink 3s infinite;
+        }
+
+        @keyframes blink {
+            0%, 45%, 55%, 100% { height: 10px; top: 12px; }
+            50% { height: 2px; top: 16px; }
+        }
+
+        .robot-eye.left {
+            left: 8px;
+        }
+
+        .robot-eye.right {
+            right: 8px;
+        }
+
+        .robot-mouth {
+            position: absolute;
+            width: 20px;
+            height: 8px;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s ease;
+        }
+
+        #floating-robot:hover .robot-mouth {
+            height: 12px;
+            border-radius: 8px;
+        }
+
+        .robot-antenna {
+            position: absolute;
+            width: 4px;
+            height: 15px;
+            background: var(--accent);
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 4px 4px 0 0;
+        }
+
+        .robot-antenna::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            top: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+        }
+
+        .robot-body {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            margin-top: -8px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .robot-chest {
+            width: 35px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .robot-arm {
+            position: absolute;
+            width: 6px;
+            height: 40px;
+            background: var(--gradient-primary);
+            top: 8px;
+            border-radius: 3px;
+            animation: swingArms 2s ease-in-out infinite alternate;
+        }
+
+        .robot-arm.left {
+            left: -12px;
+            transform-origin: top center;
+            animation-delay: 0s;
+        }
+
+        .robot-arm.right {
+            right: -12px;
+            transform-origin: top center;
+            animation-delay: 1s;
+        }
+
+        @keyframes swingArms {
+            0% { transform: rotate(-20deg); }
+            100% { transform: rotate(20deg); }
+        }
+
+        .robot-leg {
+            position: absolute;
+            width: 8px;
+            height: 50px;
+            background: var(--gradient-primary);
+            bottom: -50px;
+            border-radius: 4px 4px 0 0;
+            animation: walkLegs 0.8s ease-in-out infinite alternate;
+        }
+
+        .robot-leg.left {
+            left: 18px;
+            animation-delay: 0s;
+        }
+
+        .robot-leg.right {
+            right: 18px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes walkLegs {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-8px) rotate(4deg); }
+        }
+
+        .robot-foot {
+            position: absolute;
+            width: 12px;
+            height: 6px;
+            background: var(--accent);
+            bottom: 0;
+            border-radius: 2px 2px 0 0;
+        }
+
+        .robot-leg.left .robot-foot {
+            left: -2px;
+        }
+
+        .robot-leg.right .robot-foot {
+            right: -2px;
+        }
+
+        .robot-message {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--dark);
+            padding: 10px 15px;
+            border-radius: 15px 15px 15px 5px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 12px;
+            min-width: 180px;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary);
+            z-index: 10000;
+        }
+
+        .robot-message::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 15px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.95) transparent transparent transparent;
+        }
+
+        .robot-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-8px);
+        }
+
+        .robot-message span {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .robot-walking .robot-arm {
+            animation-duration: 0.4s;
+        }
+
+        .robot-walking .robot-leg {
+            animation-duration: 0.3s;
+        }
+
+        .robot-walking-main {
+            animation: walkAroundScreen 30s linear infinite !important;
+        }
+
+        @keyframes walkAroundScreen {
+            0% { 
+                left: 5%;
+                top: 10%;
+                transform: translate(0, 0) rotate(0deg);
+            }
+            10% { 
+                left: 95%;
+                top: 10%;
+                transform: translate(-100%, 0) rotate(5deg);
+            }
+            20% { 
+                left: 95%;
+                top: 90%;
+                transform: translate(-100%, -100%) rotate(-5deg);
+            }
+            30% { 
+                left: 5%;
+                top: 90%;
+                transform: translate(0, -100%) rotate(5deg);
+            }
+            40% { 
+                left: 5%;
+                top: 50%;
+                transform: translate(0, -50%) rotate(-5deg);
+            }
+            50% { 
+                left: 50%;
+                top: 10%;
+                transform: translate(-50%, 0) rotate(5deg);
+            }
+            60% { 
+                left: 95%;
+                top: 50%;
+                transform: translate(-100%, -50%) rotate(-5deg);
+            }
+            70% { 
+                left: 50%;
+                top: 90%;
+                transform: translate(-50%, -100%) rotate(5deg);
+            }
+            80% { 
+                left: 5%;
+                top: 50%;
+                transform: translate(0, -50%) rotate(-5deg);
+            }
+            90% { 
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%) rotate(5deg);
+            }
+            100% { 
+                left: 5%;
+                top: 10%;
+                transform: translate(0, 0) rotate(0deg);
+            }
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(10, 10, 31, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all var(--transition-normal);
+        }
+
+        header.scrolled {
+            padding: 8px 0;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            transition: padding var(--transition-normal);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(15deg) scale(1.05);
+        }
+
+        .logo-text {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .logo-text::after {
+            content: 'BOT';
+            position: absolute;
+            top: -4px;
+            right: -30px;
+            font-size: 0.6rem;
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 65, 108, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+            padding: 4px 0;
+            transition: color var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+            transition: width var(--transition-normal);
+            border-radius: 1px;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-normal);
+        }
+
+        .mobile-menu-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero {
+            padding: 150px 0 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            max-width: 700px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, 
+                #6a11cb 0%, 
+                #2575fc 25%, 
+                #ff416c 50%, 
+                #ff9966 75%, 
+                #00b09b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 300% auto;
+            animation: gradientText 8s ease infinite;
+        }
+
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 40px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all var(--transition-normal);
+            font-size: 0.95rem;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: left 0.7s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== FEATURES SECTION ===== */
+        .features {
+            background: rgba(5, 5, 16, 0.7);
+            border-radius: var(--radius-xl);
+            margin: 40px 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .features::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-dark);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            padding: 30px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--gradient-primary);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform var(--transition-normal);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .feature-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .feature-card p {
+            color: var(--gray);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* ===== COMMANDS SECTION ===== */
+        .commands {
+            position: relative;
+        }
+
+        .commands-filter {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--shadow-md);
+        }
+
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            opacity: 1;
+            transition: opacity var(--transition-normal);
+        }
+
+        .command-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            z-index: -1;
+        }
+
+        .command-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .command-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-md);
+        }
+
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .command-card h4 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .command-badge {
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-user {
+            background: rgba(0, 176, 155, 0.2);
+            color: var(--success);
+        }
+
+        .badge-ultra {
+            background: rgba(106, 17, 203, 0.2);
+            color: var(--primary);
+        }
+
+        .badge-admin {
+            background: rgba(255, 65, 108, 0.2);
+            color: var(--accent);
+        }
+
+        .command-card p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* ===== PLANS SECTION - ACTUALIZADO ===== */
+        .plans {
+            background: rgba(5, 5, 16, 0.7);
+            border-radius: var(--radius-xl);
+            margin: 40px 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plans::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-dark);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+        }
+
+        .plan-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-lg);
+            padding: 30px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-normal);
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .plan-card.featured {
+            border: 2px solid var(--primary);
+            transform: scale(1.03);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .plan-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .plan-card.featured:hover {
+            transform: scale(1.03) translateY(-8px);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gradient-accent);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-md);
+        }
+
+        .plan-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 20px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .plan-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .plan-price span {
+            font-size: 1.2rem;
+            display: block;
+            margin-top: 5px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 25px;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            color: var(--gray);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features li i.fa-check {
+            color: var(--success);
+        }
+
+        .plan-features li i.fa-times {
+            color: var(--accent);
+        }
+
+        .plan-features li i.fa-star {
+            color: #ffd700;
+        }
+
+        .promo-conditions {
+            background: rgba(255, 65, 108, 0.1);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-top: 15px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .promo-conditions h5 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .promo-conditions ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+
+        .promo-conditions li {
+            padding: 4px 0;
+            color: var(--gray);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .promo-conditions li i {
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        /* ===== TEAM SECTION ===== */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .team-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-lg);
+            padding: 30px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all var(--transition-normal);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-success);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            z-index: -1;
+        }
+
+        .team-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .team-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .team-avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .team-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .team-role {
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .team-card p {
+            color: var(--gray);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .team-contact {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .contact-link:hover {
+            color: var(--accent);
+        }
+
+        /* ===== GAME SECTION ===== */
+        .game {
+            background: rgba(5, 5, 16, 0.7);
+            border-radius: var(--radius-xl);
+            margin: 40px 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-dark);
+            opacity: 0.7;
+            z-index: -1;
+        }
+
+        .game-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .game-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .game-question {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-question h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: white;
+            line-height: 1.4;
+        }
+
+        .game-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .game-option {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .game-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-option.correct {
+            background: rgba(0, 176, 155, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .game-option.wrong {
+            background: rgba(255, 65, 108, 0.2);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .option-letter {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: rgba(5, 5, 16, 0.95);
+            padding: 60px 0 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-col h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: white;
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-col h3::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 35px;
+            height: 3px;
+            background: var(--gradient-accent);
+            border-radius: 2px;
+        }
+
+        .footer-about p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            text-decoration: none;
+            transition: all var(--transition-normal);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+        }
+
+        .social-link:hover {
+            background: var(--gradient-primary);
+            color: white;
+            transform: translateY(-3px);
+            border-color: transparent;
+            box-shadow: var(--shadow-md);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--gray);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2.2rem;
+            }
+            
+            .plan-card.featured {
+                transform: none;
+            }
+            
+            .plan-card.featured:hover {
+                transform: translateY(-8px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: rgba(10, 10, 31, 0.98);
+                backdrop-filter: blur(15px);
+                flex-direction: column;
+                padding: 25px 15px;
+                gap: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: all var(--transition-normal);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero {
+                padding: 130px 0 80px;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 0.95rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .section {
+                padding: 60px 0;
+            }
+            
+            .features, .plans, .game {
+                margin: 30px 10px;
+            }
+            
+            /* Ajuste del robot para móviles */
+            #floating-robot {
+                width: 85px;
+                height: 130px;
+                bottom: 15px;
+                right: 15px;
+            }
+            
+            .robot-head {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .robot-body {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .robot-leg {
+                height: 45px;
+                bottom: -45px;
+            }
+            
+            .robot-message {
+                min-width: 160px;
+                font-size: 0.75rem;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .section-title h2 {
+                font-size: 1.8rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-options {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Robot más pequeño en móviles */
+            #floating-robot {
+                width: 70px;
+                height: 110px;
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .robot-head {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .robot-body {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .robot-leg {
+                height: 35px;
+                bottom: -35px;
+            }
+            
+            .robot-message {
+                min-width: 140px;
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+            
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== ANIMACIONES ===== */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 10, 31, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #7a1bdb, #3585ff);
+        }
+    </style>
+</head>
+<body>
+    <!-- Robot Completo Animado -->
+    <div id="floating-robot">
+        <div class="robot-message" id="robotMessage">
+            ¡Hola! Soy Nexus, tu asistente. <span>Haz clic para caminar</span> por la pantalla.
+        </div>
+        <div class="robot-container">
+            <div class="robot-head">
+                <div class="robot-antenna"></div>
+                <div class="robot-face">
+                    <div class="robot-eye left"></div>
+                    <div class="robot-eye right"></div>
+                    <div class="robot-mouth"></div>
+                </div>
+            </div>
+            <div class="robot-body">
+                <div class="robot-chest">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="robot-arm left"></div>
+                <div class="robot-arm right"></div>
+            </div>
+            <div class="robot-leg left">
+                <div class="robot-foot"></div>
+            </div>
+            <div class="robot-leg right">
+                <div class="robot-foot"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="#home" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="logo-text">Nexus</div>
+                </a>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="nav-links" id="navLinks">
+                    <a href="#home"><i class="fas fa-home"></i> Inicio</a>
+                    <a href="#features"><i class="fas fa-star"></i> Características</a>
+                    <a href="#commands"><i class="fas fa-code"></i> Comandos</a>
+                    <a href="#plans"><i class="fas fa-crown"></i> Planes</a>
+                    <a href="#team"><i class="fas fa-users"></i> Equipo</a>
+                    <a href="#game"><i class="fas fa-gamepad"></i> Juego</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="floating">Nexus Multimedia Bot</h1>
+                <p>La solución definitiva para gestión de contenido multimedia en Telegram. Accede a miles de películas, series, anime y juegos con un sistema inteligente de búsqueda y organización avanzada.</p>
+                
+                <div class="cta-buttons">
+                    <a href="https://t.me/MultimeduaNexus_bot" target="_blank" class="btn btn-primary">
+                        <i class="fab fa-telegram"></i> Usar el Bot
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        <i class="fas fa-play-circle"></i> Ver Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features" id="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Características Principales</h2>
+                <p>Descubre por qué Nexus Multimedia es la mejor opción para gestionar contenido multimedia</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Búsqueda Inteligente</h3>
+                    <p>Sistema de búsqueda avanzada con filtros por categoría, tipo de contenido y palabras clave. Encuentra lo que necesitas en segundos.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Organización Avanzada</h3>
+                    <p>Contenido organizado en categorías inteligentes: Películas, Series, Anime, Juegos y Animados. Navegación intuitiva y rápida.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Seguridad Total</h3>
+                    <p>Sistema de administración completo con control de usuarios, protección anti-spam y medidas de seguridad avanzadas.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>Base de Datos Optimizada</h3>
+                    <p>Almacenamiento eficiente con sistema de respaldo automático, exportación/importación de datos y estadísticas detalladas.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Estadísticas en Tiempo Real</h3>
+                    <p>Monitorea el uso del bot, contenido más buscado y actividad de usuarios con gráficos interactivos y reportes detallados.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Personalización Completa</h3>
+                    <p>Ajusta el bot a tus necesidades con configuración avanzada, plantillas personalizables y sistema de notificaciones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Commands Section -->
+    <section class="section commands" id="commands">
+        <div class="container">
+            <div class="section-title">
+                <h2>Comandos Disponibles</h2>
+                <p>Accede a todas las funcionalidades del bot con estos comandos organizados por categorías</p>
+            </div>
+            
+            <div class="commands-filter">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="user">Usuario</button>
+                <button class="filter-btn" data-filter="ultra">Ultra</button>
+                <button class="filter-btn" data-filter="admin">Administrador</button>
+            </div>
+            
+            <div class="commands-grid" id="commandsGrid">
+                <!-- Comandos se cargan dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Plans Section - ACTUALIZADO -->
+    <section class="section plans" id="plans">
+        <div class="container">
+            <div class="section-title">
+                <h2>Planes de Suscripción</h2>
+                <p>Elige el plan que mejor se adapte a tus necesidades y desbloquea todas las funciones</p>
+            </div>
+            
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Gratis</h3>
+                    <div class="plan-price">0<span>mensual</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 3 búsquedas diarias</li>
+                        <li><i class="fas fa-check"></i> Acceso básico al contenido</li>
+                        <li><i class="fas fa-check"></i> Soporte comunitario</li>
+                        <li><i class="fas fa-times"></i> Solicitudes personalizadas</li>
+                        <li><i class="fas fa-times"></i> Contenido exclusivo</li>
+                        <li><i class="fas fa-times"></i> Prioridad en búsquedas</li>
+                    </ul>
+                    <a href="https://t.me/Emanuel14APK" target="_blank" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+                        <i class="fab fa-telegram"></i> Contactar: @Emanuel14APK
+                    </a>
+                </div>
+                
+                <div class="plan-card featured">
+                    <div class="plan-badge">Más Popular</div>
+                    <div class="plan-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3>Ultra</h3>
+                    <div class="plan-price">150<span>CUP/mes</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Búsquedas ilimitadas</li>
+                        <li><i class="fas fa-check"></i> Solicitudes personalizadas</li>
+                        <li><i class="fas fa-check"></i> Acceso prioritario</li>
+                        <li><i class="fas fa-check"></i> Todo el contenido exclusivo</li>
+                        <li><i class="fas fa-check"></i> Soporte 24/7</li>
+                        <li><i class="fas fa-check"></i> Plantillas premium</li>
+                    </ul>
+                    <a href="https://t.me/Emanuel14APK" target="_blank" class="btn btn-primary" style="width: 100%; margin-top: auto;">
+                        <i class="fab fa-telegram"></i> Contactar: @Emanuel14APK
+                    </a>
+                </div>
+                
+                <div class="plan-card">
+                    <div class="plan-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Básico</h3>
+                    <div class="plan-price">100<span>CUP/mes</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> 20 búsquedas diarias</li>
+                        <li><i class="fas fa-check"></i> Acceso estándar</li>
+                        <li><i class="fas fa-check"></i> Soporte prioritario</li>
+                        <li><i class="fas fa-check"></i> Algunos exclusivos</li>
+                        <li><i class="fas fa-times"></i> Solicitudes personalizadas</li>
+                        <li><i class="fas fa-check"></i> Estadísticas avanzadas</li>
+                    </ul>
+                    <a href="https://t.me/Emanuel14APK" target="_blank" class="btn btn-secondary" style="width: 100%; margin-top: auto;">
+                        <i class="fab fa-telegram"></i> Contactar: @Emanuel14APK
+                    </a>
+                </div>
+                
+                <div class="plan-card">
+                    <div class="plan-badge" style="background: var(--gradient-success);">Especial</div>
+                    <div class="plan-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3>Promo</h3>
+                    <div class="plan-price">Condiciones<span>especiales</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Búsquedas ilimitadas</li>
+                        <li><i class="fas fa-check"></i> Acceso a todo el contenido</li>
+                        <li><i class="fas fa-check"></i> Soporte premium</li>
+                        <li><i class="fas fa-check"></i> Beneficios especiales</li>
+                        <li><i class="fas fa-check"></i> Herramientas de promoción</li>
+                        <li><i class="fas fa-check"></i> Personalización total</li>
+                    </ul>
+                    
+                    <div class="promo-conditions">
+                        <h5>Condiciones para obtenerlo:</h5>
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> Ser administrador de canales</li>
+                            <li><i class="fas fa-check-circle"></i> Estar interesado en dar promoción al bot</li>
+                        </ul>
+                    </div>
+                    
+                    <a href="https://t.me/Emanuel14APK" target="_blank" class="btn btn-primary" style="width: 100%; margin-top: 15px; background: var(--gradient-success);">
+                        <i class="fab fa-telegram"></i> Contactar: @Emanuel14APK
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section" id="team">
+        <div class="container">
+            <div class="section-title">
+                <h2>Nuestro Equipo</h2>
+                <p>Conoce a las personas que hacen posible Nexus Multimedia</p>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Alex Developer</h3>
+                    <div class="team-role">Desarrollador Principal</div>
+                    <p>Responsable del desarrollo backend, arquitectura del sistema y mantenimiento del bot. Más de 5 años de experiencia en desarrollo de bots.</p>
+                    <div class="team-contact">
+                        <a href="https://t.me/Thedemonsupreme" target="_blank" class="contact-link">
+                            <i class="fab fa-telegram"></i> @Thedemonsupreme
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3>Nexus Channel</h3>
+                    <div class="team-role">Canal Oficial</div>
+                    <p>Sigue nuestro canal para mantenerte actualizado con las últimas novedades, actualizaciones y contenido exclusivo del bot.</p>
+                    <div class="team-contact">
+                        <a href="https://t.me/ProyectNexuscanal" target="_blank" class="contact-link">
+                            <i class="fab fa-telegram"></i> @ProyectNexuscanal
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="team-card">
+                    <div class="team-avatar">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Emanuel Support</h3>
+                    <div class="team-role">Soporte Técnico</div>
+                    <p>Encargado del soporte técnico, resolución de problemas y atención al usuario. Disponible para ayudar con cualquier consulta.</p>
+                    <div class="team-contact">
+                        <a href="https://t.me/Emanuel14APK" target="_blank" class="contact-link">
+                            <i class="fab fa-telegram"></i> @Emanuel14APK
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Section -->
+    <section class="section game" id="game">
+        <div class="container">
+            <div class="section-title">
+                <h2>Trivia Multimedia</h2>
+                <p>Pon a prueba tus conocimientos sobre películas, series y cultura general</p>
+            </div>
+            
+            <div class="game-container">
+                <div class="game-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="score">0</div>
+                        <div class="stat-label">Puntuación</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="correct">0</div>
+                        <div class="stat-label">Correctas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="questions">0/10</div>
+                        <div class="stat-label">Progreso</div>
+                    </div>
+                </div>
+                
+                <div class="game-question">
+                    <h3 id="question">Cargando pregunta...</h3>
+                    <div class="game-options" id="options">
+                        <!-- Opciones se cargan dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button class="btn btn-secondary" id="nextBtn" disabled>
+                        <i class="fas fa-forward"></i> Siguiente
+                    </button>
+                    <button class="btn btn-primary" id="restartBtn">
+                        <i class="fas fa-redo"></i> Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3>Nexus Multimedia</h3>
+                    <div class="footer-about">
+                        <p>Bot de Telegram avanzado para la gestión y distribución de contenido multimedia. La mejor solución para organizar y acceder a miles de películas, series, anime y juegos.</p>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://t.me/MultimeduaNexus_bot" target="_blank" class="social-link">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                        <a href="https://t.me/ProyectNexuscanal" target="_blank" class="social-link">
+                            <i class="fas fa-bullhorn"></i>
+                        </a>
+                        <a href="https://github.com" target="_blank" class="social-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Enlaces Rápidos</h3>
+                    <div class="footer-links">
+                        <ul>
+                            <li><a href="#home"><i class="fas fa-chevron-right"></i> Inicio</a></li>
+                            <li><a href="#features"><i class="fas fa-chevron-right"></i> Características</a></li>
+                            <li><a href="#commands"><i class="fas fa-chevron-right"></i> Comandos</a></li>
+                            <li><a href="#plans"><i class="fas fa-chevron-right"></i> Planes</a></li>
+                            <li><a href="#team"><i class="fas fa-chevron-right"></i> Equipo</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Contacto</h3>
+                    <div class="footer-links">
+                        <ul>
+                            <li><a href="https://t.me/Thedemonsupreme" target="_blank"><i class="fab fa-telegram"></i> @Thedemonsupreme</a></li>
+                            <li><a href="https://t.me/ProyectNexuscanal" target="_blank"><i class="fas fa-broadcast-tower"></i> @ProyectNexuscanal</a></li>
+                            <li><a href="https://t.me/Emanuel14APK" target="_blank"><i class="fas fa-headset"></i> @Emanuel14APK</a></li>
+                            <li><a href="https://t.me/MultimeduaNexus_bot" target="_blank"><i class="fas fa-robot"></i> @MultimeduaNexus_bot</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2024 Nexus Multimedia Bot. Todos los derechos reservados.</p>
+                <p>Desarrollado por @Thedemonsupreme | Bot: @MultimeduaNexus_bot</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== VARIABLES GLOBALES =====
+        let currentQuestion = 0;
+        let score = 0;
+        let correctAnswers = 0;
+        let questionsAnswered = 0;
+        const totalQuestions = 10;
+        let gameActive = true;
+
+        // ===== DATOS DEL JUEGO =====
+        const triviaQuestions = [
+            {
+                question: "¿Qué plataforma utiliza Nexus Multimedia Bot?",
+                options: ["Discord", "Telegram", "WhatsApp", "Twitter"],
+                answer: 1,
+                category: "general"
+            },
+            {
+                question: "¿Cuál es el comando principal para buscar contenido?",
+                options: ["/find", "/search", "/look", "/get"],
+                answer: 1,
+                category: "general"
+            },
+            {
+                question: "¿Qué película ganó el Oscar a Mejor Película en 2020?",
+                options: ["Parasite", "1917", "Joker", "Once Upon a Time in Hollywood"],
+                answer: 0,
+                category: "movies"
+            },
+            {
+                question: "¿Qué anime popularizó el género isekai?",
+                options: ["Sword Art Online", "Re:Zero", "No Game No Life", "Overlord"],
+                answer: 0,
+                category: "anime"
+            },
+            {
+                question: "¿Cuántas búsquedas diarias incluye el plan Gratis?",
+                options: ["3", "5", "10", "Ilimitadas"],
+                answer: 0,
+                category: "general"
+            },
+            {
+                question: "¿Qué serie tiene el récord de más premios Emmy?",
+                options: ["Game of Thrones", "Breaking Bad", "The Crown", "Saturday Night Live"],
+                answer: 3,
+                category: "series"
+            },
+            {
+                question: "¿Qué plan permite solicitudes personalizadas?",
+                options: ["Gratis", "Básico", "Ultra", "Promo"],
+                answer: 2,
+                category: "general"
+            },
+            {
+                question: "¿Quién es el desarrollador principal del bot?",
+                options: ["@Emanuel14APK", "@Thedemonsupreme", "@ProyectNexuscanal", "@MultimediaBot"],
+                answer: 1,
+                category: "general"
+            },
+            {
+                question: "¿Qué película de Disney tiene la canción 'Let It Go'?",
+                options: ["Moana", "Frozen", "Enredados", "La princesa y el sapo"],
+                answer: 1,
+                category: "movies"
+            },
+            {
+                question: "¿Qué comando muestra las estadísticas del usuario?",
+                options: ["/stats", "/mystats", "/info", "/data"],
+                answer: 1,
+                category: "general"
+            }
+        ];
+
+        // ===== DATOS DE COMANDOS =====
+        const commandsData = [
+            {
+                name: "/search",
+                description: "Buscar contenido por palabras clave",
+                category: "user",
+                icon: "fa-search"
+            },
+            {
+                name: "/plans",
+                description: "Ver los planes disponibles y sus características",
+                category: "user",
+                icon: "fa-crown"
+            },
+            {
+                name: "/mystats",
+                description: "Ver estadísticas de uso y búsquedas restantes",
+                category: "user",
+                icon: "fa-chart-bar"
+            },
+            {
+                name: "/request",
+                description: "Solicitar contenido específico (solo Ultra)",
+                category: "ultra",
+                icon: "fa-edit"
+            },
+            {
+                name: "/upload",
+                description: "Subir nuevo contenido a la base de datos",
+                category: "admin",
+                icon: "fa-upload"
+            },
+            {
+                name: "/plantilla",
+                description: "Crear plantilla visual para contenido",
+                category: "user",
+                icon: "fa-image"
+            },
+            {
+                name: "/viewall",
+                description: "Ver todo el contenido disponible (admin)",
+                category: "admin",
+                icon: "fa-eye"
+            },
+            {
+                name: "/broadcast",
+                description: "Enviar mensaje a todos los usuarios",
+                category: "admin",
+                icon: "fa-broadcast-tower"
+            },
+            {
+                name: "/database",
+                description: "Gestión de base de datos y respaldos",
+                category: "admin",
+                icon: "fa-database"
+            },
+            {
+                name: "/ban",
+                description: "Banear o desbanear usuarios",
+                category: "admin",
+                icon: "fa-user-shield"
+            },
+            {
+                name: "/soporte",
+                description: "Activar modo soporte para consultas",
+                category: "admin",
+                icon: "fa-cogs"
+            },
+            {
+                name: "/help",
+                description: "Mostrar todos los comandos disponibles",
+                category: "user",
+                icon: "fa-question-circle"
+            }
+        ];
+
+        // ===== FUNCIONES DE INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initHeader();
+            initCommands();
+            initGame();
+            initSmoothScroll();
+            initMobileMenu();
+            initRobot();
+            
+            // Iniciar caminata automática del robot después de 5 segundos
+            setTimeout(() => {
+                const robot = document.getElementById('floating-robot');
+                if (!robot.classList.contains('robot-walking-main')) {
+                    startRobotWalk();
+                    setTimeout(() => {
+                        stopRobotWalk();
+                    }, 30000); // Detener después de 30 segundos
+                }
+            }, 5000);
+        });
+
+        // ===== ROBOT COMPLETO ANIMADO =====
+        function initRobot() {
+            const robot = document.getElementById('floating-robot');
+            const robotMessage = document.getElementById('robotMessage');
+            let isWalking = false;
+            let autoWalkInterval;
+            
+            // Mensajes de saludo
+            const greetings = [
+                "¡Hola! Soy Nexus, tu asistente virtual.",
+                "¿Buscas contenido multimedia? ¡Yo puedo ayudarte!",
+                "¡Bienvenido a Nexus Multimedia!",
+                "¿Sabías que puedes usar /search para encontrar contenido?",
+                "¡Haz clic en mí para que camine por la pantalla!",
+                "Prueba nuestro juego de trivia abajo 👇",
+                "¡Conéctate con nuestro bot @MultimeduaNexus_bot!"
+            ];
+            
+            // Mostrar mensaje al cargar la página
+            setTimeout(() => {
+                showRobotMessage("¡Hola! Bienvenido a Nexus Multimedia. Soy tu asistente virtual.", 4000);
+            }, 1000);
+            
+            // Mostrar mensaje aleatorio cada 30 segundos
+            setInterval(() => {
+                if (!isWalking) {
+                    const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+                    showRobotMessage(randomGreeting, 3000);
+                }
+            }, 30000);
+            
+            // Mostrar mensaje al hacer clic en el robot
+            robot.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                if (isWalking) {
+                    stopRobotWalk();
+                    showRobotMessage("¡Gracias por caminar conmigo! ¿En qué más puedo ayudarte?", 3000);
+                } else {
+                    startRobotWalk();
+                    showRobotMessage("¡Vamos a caminar! Haz clic de nuevo para detenerme.", 3000);
+                    
+                    // Detener automáticamente después de 30 segundos
+                    clearTimeout(autoWalkInterval);
+                    autoWalkInterval = setTimeout(() => {
+                        if (isWalking) {
+                            stopRobotWalk();
+                            showRobotMessage("¡Terminé de caminar! ¿Necesitas algo más?", 3000);
+                        }
+                    }, 30000);
+                }
+            });
+            
+            // Mostrar mensaje al pasar el cursor
+            robot.addEventListener('mouseenter', function() {
+                if (!isWalking && !robotMessage.classList.contains('show')) {
+                    showRobotMessage("¡Haz clic para verme caminar por la pantalla!", 2000);
+                }
+            });
+            
+            // Función para mostrar mensaje del robot
+            function showRobotMessage(message, duration = 3000) {
+                robotMessage.textContent = message;
+                robotMessage.classList.add('show');
+                
+                setTimeout(() => {
+                    robotMessage.classList.remove('show');
+                }, duration);
+            }
+            
+            // Función para iniciar el paseo del robot
+            function startRobotWalk() {
+                isWalking = true;
+                robot.classList.add('robot-walking');
+                robot.classList.add('robot-walking-main');
+                robot.style.cursor = 'pointer';
+                robotMessage.classList.remove('show');
+            }
+            
+            // Función para detener el paseo del robot
+            function stopRobotWalk() {
+                isWalking = false;
+                robot.classList.remove('robot-walking');
+                robot.classList.remove('robot-walking-main');
+                robot.style.cursor = 'pointer';
+            }
+            
+            // Permitir arrastrar el robot
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            robot.addEventListener('mousedown', startDrag);
+            robot.addEventListener('touchstart', startDrag);
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+                
+                const rect = robot.getBoundingClientRect();
+                
+                if (e.type === 'mousedown') {
+                    offsetX = e.clientX - rect.left;
+                    offsetY = e.clientY - rect.top;
+                    document.addEventListener('mousemove', onDrag);
+                    document.addEventListener('mouseup', stopDrag);
+                } else {
+                    offsetX = e.touches[0].clientX - rect.left;
+                    offsetY = e.touches[0].clientY - rect.top;
+                    document.addEventListener('touchmove', onDrag);
+                    document.addEventListener('touchend', stopDrag);
+                }
+                
+                robot.style.transition = 'none';
+                // Detener la animación de caminar si está activa
+                if (isWalking) {
+                    stopRobotWalk();
+                }
+            }
+            
+            function onDrag(e) {
+                if (!isDragging) return;
+                
+                let clientX, clientY;
+                
+                if (e.type === 'mousemove') {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                } else {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                
+                const x = clientX - offsetX;
+                const y = clientY - offsetY;
+                
+                // Limitar el movimiento dentro de la ventana
+                const maxX = window.innerWidth - robot.offsetWidth;
+                const maxY = window.innerHeight - robot.offsetHeight;
+                
+                robot.style.left = Math.min(Math.max(0, x), maxX) + 'px';
+                robot.style.top = Math.min(Math.max(0, y), maxY) + 'px';
+                robot.style.bottom = 'auto';
+                robot.style.right = 'auto';
+                robot.style.transform = 'none';
+                robot.style.position = 'fixed';
+                
+                // Mostrar mensaje mientras se arrastra
+                if (!robotMessage.classList.contains('show')) {
+                    showRobotMessage("¡Llévame donde quieras!", 1000);
+                }
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                robot.style.transition = 'all 0.5s ease';
+                
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', onDrag);
+                document.removeEventListener('touchend', stopDrag);
+                
+                // Mostrar mensaje al soltar
+                showRobotMessage("¡Gracias por moverme! Este es un buen lugar.", 2000);
+            }
+        }
+
+        // ===== HEADER SCROLL EFFECT =====
+        function initHeader() {
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+        }
+
+        // ===== COMANDOS DINÁMICOS =====
+        function initCommands() {
+            const commandsGrid = document.getElementById('commandsGrid');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            // Renderizar comandos
+            function renderCommands(filter = 'all') {
+                commandsGrid.innerHTML = '';
+                const filteredCommands = filter === 'all' 
+                    ? commandsData 
+                    : commandsData.filter(cmd => cmd.category === filter);
+                
+                filteredCommands.forEach(cmd => {
+                    const commandCard = document.createElement('div');
+                    commandCard.className = 'command-card';
+                    commandCard.innerHTML = `
+                        <div class="command-header">
+                            <h4><i class="fas ${cmd.icon}"></i> ${cmd.name}</h4>
+                            <span class="command-badge badge-${cmd.category}">${cmd.category}</span>
+                        </div>
+                        <p>${cmd.description}</p>
+                    `;
+                    commandsGrid.appendChild(commandCard);
+                });
+            }
+            
+            // Inicializar con todos los comandos
+            renderCommands();
+            
+            // Configurar filtros
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderCommands(this.dataset.filter);
+                });
+            });
+        }
+
+        // ===== JUEGO DE TRIVIA =====
+        function initGame() {
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const nextBtn = document.getElementById('nextBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const scoreElement = document.getElementById('score');
+            const correctElement = document.getElementById('correct');
+            const questionsElement = document.getElementById('questions');
+            
+            let currentQuestionIndex = 0;
+            let shuffledQuestions = [...triviaQuestions].sort(() => Math.random() - 0.5);
+            
+            function loadQuestion() {
+                if (currentQuestionIndex >= totalQuestions) {
+                    endGame();
+                    return;
+                }
+                
+                const question = shuffledQuestions[currentQuestionIndex];
+                questionElement.textContent = question.question;
+                questionsElement.textContent = `${currentQuestionIndex + 1}/${totalQuestions}`;
+                
+                // Limpiar opciones anteriores
+                optionsElement.innerHTML = '';
+                
+                // Crear nuevas opciones
+                question.options.forEach((option, index) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'game-option';
+                    optionElement.dataset.index = index;
+                    optionElement.innerHTML = `
+                        <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                        <div>${option}</div>
+                    `;
+                    
+                    optionElement.addEventListener('click', function() {
+                        if (!gameActive) return;
+                        
+                        const selectedIndex = parseInt(this.dataset.index);
+                        const correctIndex = question.answer;
+                        
+                        // Deshabilitar todas las opciones
+                        document.querySelectorAll('.game-option').forEach(opt => {
+                            opt.style.pointerEvents = 'none';
+                        });
+                        
+                        // Marcar respuesta correcta
+                        document.querySelectorAll('.game-option')[correctIndex].classList.add('correct');
+                        
+                        // Marcar respuesta incorrecta si aplica
+                        if (selectedIndex !== correctIndex) {
+                            this.classList.add('wrong');
+                        } else {
+                            score += 10;
+                            correctAnswers++;
+                            updateStats();
+                        }
+                        
+                        questionsAnswered++;
+                        nextBtn.disabled = false;
+                    });
+                    
+                    optionsElement.appendChild(optionElement);
+                });
+                
+                nextBtn.disabled = true;
+            }
+            
+            function updateStats() {
+                scoreElement.textContent = score;
+                correctElement.textContent = correctAnswers;
+            }
+            
+            function endGame() {
+                gameActive = false;
+                questionElement.textContent = `¡Juego Terminado! Puntuación: ${score} puntos`;
+                optionsElement.innerHTML = '';
+                nextBtn.disabled = true;
+            }
+            
+            nextBtn.addEventListener('click', function() {
+                currentQuestionIndex++;
+                loadQuestion();
+            });
+            
+            restartBtn.addEventListener('click', function() {
+                currentQuestionIndex = 0;
+                score = 0;
+                correctAnswers = 0;
+                questionsAnswered = 0;
+                gameActive = true;
+                shuffledQuestions = [...triviaQuestions].sort(() => Math.random() - 0.5);
+                loadQuestion();
+                updateStats();
+                nextBtn.disabled = true;
+            });
+            
+            // Cargar primera pregunta
+            loadQuestion();
+            updateStats();
+        }
+
+        // ===== SCROLL SUAVE =====
+        function initSmoothScroll() {
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const headerHeight = document.getElementById('header').offsetHeight;
+                        const targetPosition = targetElement.offsetTop - headerHeight;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        }
+
+        // ===== MENÚ MÓVIL =====
+        function initMobileMenu() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const navLinks = document.getElementById('navLinks');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                navLinks.classList.toggle('active');
+                this.innerHTML = navLinks.classList.contains('active') 
+                    ? '<i class="fas fa-times"></i>' 
+                    : '<i class="fas fa-bars"></i>';
+            });
+            
+            // Cerrar menú al hacer clic en un enlace
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('active');
+                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                });
+            });
+            
+            // Cerrar menú al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!navLinks.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                    navLinks.classList.remove('active');
+                    mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
+        }
+
+        // ===== ANIMACIONES DE ENTRADA =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos para animar
+        document.querySelectorAll('.feature-card, .command-card, .plan-card, .team-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
